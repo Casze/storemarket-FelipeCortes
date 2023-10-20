@@ -1,4 +1,9 @@
-import { Injectable, Inject, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  Inject,
+  NotFoundException,
+  forwardRef,
+} from '@nestjs/common';
 import { Product } from './entities/product.entity';
 import { Repository } from 'typeorm';
 import { CreateProductInput } from './dto/create-product.input';
@@ -11,8 +16,11 @@ export class ProductsService {
   constructor(
     @Inject('PRODUCT_REPOSITORY')
     private productRepository: Repository<Product>,
+    @Inject(forwardRef(() => UsersService))
     private userService: UsersService,
-  ) {}
+  ) {
+    console.log(`PRODUCT_REPOSITORY: ${productRepository}`);
+  }
 
   async findAll(): Promise<Product[]> {
     return this.productRepository.find({

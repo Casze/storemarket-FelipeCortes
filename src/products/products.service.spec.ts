@@ -1,93 +1,78 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { TypeOrmModule, getRepositoryToken } from '@nestjs/typeorm';
 import { ProductsService } from './products.service';
-import { ProductsResolver } from './products.resolver';
+import { TypeOrmModule, getRepositoryToken } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Product } from './entities/product.entity';
-import { AppModule } from '../app.module';
-import { databaseProviders } from '../database/database.providers';
 
-describe('ProductsService', () => {
-  let service: ProductsService;
-  let resolver: ProductsResolver;
+describe('ProductService', () => {
+  let productService: ProductsService;
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   let productRepository: Repository<Product>;
-  // Asegúrate de importar el modelo Product y Repository desde TypeORM
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       imports: [
         TypeOrmModule.forRoot({
-          type: 'mysql',
-          host: 'localhost',
-          port: 3306,
-          username: 'root',
-          password: '198252021298',
-          database: 'test',
-          entities: [__dirname + '/../**/*.entity{.ts,.js}'],
+          type: 'sqlite',
+          database: ':memory:',
+          entities: [__dirname + '/**/*.entity{.ts,.js}'],
           synchronize: true,
         }),
       ],
       providers: [
-        ...databaseProviders,
-        AppModule,
         ProductsService,
-        ProductsResolver,
-        {
-          provide: getRepositoryToken(ProductsService),
-          useClass: ProductsService,
-        },
         {
           provide: getRepositoryToken(Product),
           useClass: Repository,
         },
       ],
     }).compile();
-    service = module.get<ProductsService>(ProductsService);
-    resolver = module.get<ProductsResolver>(ProductsResolver);
+
+    productService = module.get<ProductsService>(ProductsService);
     productRepository = module.get<Repository<Product>>(
       getRepositoryToken(Product),
     );
   });
+
   describe('findAll', () => {
     it('should return an array of products', async () => {
-      const products = [
-        {
-          id: 1,
-          name: 'Producto 1',
-          category: 'Electrónica',
-          price: 500,
-          description: 'Descripción del Producto 1',
-          image: 'imagen1.jpg',
-          username: 'usuario1',
-          user: {
-            id: 1,
-            name: 'usuario1',
-            password: 'password',
-            email: 'email',
-            Products: [],
-          },
-        },
-        {
-          id: 2,
-          name: 'Producto 2',
-          category: 'Ropa',
-          price: 30,
-          description: 'Descripción del Producto 2',
-          image: 'imagen2.jpg',
-          username: 'usuario2',
-          user: {
-            id: 1,
-            name: 'usuario1',
-            password: 'password',
-            email: 'email',
-            Products: [],
-          },
-        },
-      ];
-      jest.spyOn(productRepository, 'find').mockResolvedValueOnce(products);
+      const product1 = new Product();
+      product1.id = 1;
+      product1.category = 'testCategory';
+      product1.description = 'testDescription';
+      product1.image = 'https://i.insider.com/5f835d4ebab422001979aaeb';
+      product1.name = 'testProduct';
+      product1.price = 100;
+      product1.user = {
+        id: 1,
+        name: 'UserTestName',
+        password: '',
+        Products: [],
+      };
+      product1.username = product1.user.name;
+      const product2 = new Product();
+      product2.id = 2;
+      product2.category = 'anotherTestCategory';
+      product2.description = 'anotherTestDescription';
+      product2.image =
+        'https://assets.hongkiat.com/uploads/revolutionary-products/oculus-rift.jpg';
+      product2.name = 'anotherTestProduct';
+      product2.price = 200;
+
+      product2.user = {
+        id: 2,
+        name: 'AnotherUserTestName',
+        password: '',
+        Products: [],
+      };
+
+      product2.username = product2.user.name;
+
       jest
-        .spyOn(service, 'findAll')
-        .mockImplementation(() => Promise.resolve(products));
-      expect(await resolver.products()).toEqual(products);
+        .spyOn(productRepository, 'find')
+        .mockResolvedValue([product1, product2]);
+      const result = await productService.findAll();
+      expect(result).toEqual([product1, product2]);
     });
   });
 });

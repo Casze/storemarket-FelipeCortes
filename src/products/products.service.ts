@@ -18,9 +18,7 @@ export class ProductsService {
     private productRepository: Repository<Product>,
     @Inject(forwardRef(() => UsersService))
     private userService: UsersService,
-  ) {
-    console.log(`PRODUCT_REPOSITORY: ${productRepository}`);
-  }
+  ) {}
 
   async findAll(): Promise<Product[]> {
     return this.productRepository.find({

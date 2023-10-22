@@ -18,47 +18,47 @@ import { UpdateProductInput } from './dto/update-product.input';
 export class ProductsResolver {
   constructor(private readonly productsService: ProductsService) {}
 
-  @Query(() => [Product])
-  products() {
+  @Query(() => [Product], { name: 'products' })
+  getAllProducts(): Promise<Product[]> {
     return this.productsService.findAll();
   }
 
-  @Query(() => Product)
-  product(@Args('id', { type: () => Int }) id: number) {
+  @Query(() => Product, { name: 'product' })
+  getProductById(@Args('id', { type: () => Int }) id: number): Promise<Product> {
     return this.productsService.findOneProduct(id);
   }
 
-  @Query(() => [Product])
-  async productsByUser(@Args('name', { type: () => String }) name: string) {
-    const response = await this.productsService.getProductsByUsername(name);
-    return response;
+  @Query(() => [Product], { name: 'productsByUser' })
+  getProductsByUsername(@Args('name', { type: () => String }) name: string): Promise<Product[]> {
+    return this.productsService.getProductsByUsername(name);
   }
 
-  @ResolveField(() => User)
-  user(@Parent() product: Product): Promise<User> {
-    return this.productsService.getUser(product.username);
+  @ResolveField(() => User, { name: 'user' })
+  getUserByProduct(@Parent() product: Product): Promise<User> {
+      return this.productsService.getUser(product.user.name);
   }
+  
 
-  @Mutation(() => Product)
-  createProduct(@Args('productsInput') productsInput: CreateProductInput) {
+  @Mutation(() => Product, { name: 'createProduct' })
+  addNewProduct(@Args('productsInput') productsInput: CreateProductInput): Promise<Product> {
     return this.productsService.createProduct(productsInput);
   }
 
-  @Mutation(() => Product)
-  updateProduct(
+  @Mutation(() => Product, { name: 'updateProduct' })
+  modifyProduct(
     @Args('id', { type: () => Int }) id: number,
     @Args('updateProductInput') updateProductInput: UpdateProductInput,
-  ) {
+  ): Promise<Product> {
     return this.productsService.updateProduct(id, updateProductInput);
   }
 
-  @Mutation(() => Boolean)
-  deleteProduct(@Args('id', { type: () => Int }) id: number) {
+  @Mutation(() => Boolean, { name: 'deleteProduct' })
+  removeProduct(@Args('id', { type: () => Int }) id: number): Promise<boolean> {
     return this.productsService.deleteProduct(id);
   }
 
-  @Mutation(() => FetchAndSaveProductsResponse)
-  async fetchAndSaveProducts(): Promise<FetchAndSaveProductsResponse> {
+  @Mutation(() => FetchAndSaveProductsResponse, { name: 'fetchAndSaveProducts' })
+  async fetchAndPersistProducts(): Promise<FetchAndSaveProductsResponse> {
     try {
       await this.productsService.fetchAndSaveProducts();
       return {
@@ -73,19 +73,19 @@ export class ProductsResolver {
     }
   }
 
-  @Mutation(() => Product)
-  async addProductToUser(
+  @Mutation(() => Product, { name: 'addProductToUser' })
+  assignProductToUser(
     @Args('userId', { type: () => Int }) userId: number,
     @Args('productId', { type: () => Int }) productId: number,
   ): Promise<Product> {
     return this.productsService.addProductToUser(userId, productId);
   }
 
-  @Mutation(() => Product)
-  async removeProductFromUser(
+  @Mutation(() => Product, { name: 'removeProductFromUser' })
+  unassignProductFromUser(
+    @Args('userId', { type: () => Int }) userId: number,
     @Args('productId', { type: () => Int }) productId: number,
   ): Promise<Product> {
-    return this.productsService.removeProductFromUser(productId);
+    return this.productsService.removeProductFromUser(userId, productId);
   }
-
 }

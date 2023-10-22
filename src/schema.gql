@@ -2,14 +2,6 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 # ------------------------------------------------------
 
-type User {
-  id: Int!
-  name: String!
-  password: String!
-  email: String
-  Products: [Product!]!
-}
-
 type Product {
   id: Int!
   name: String!
@@ -17,8 +9,15 @@ type Product {
   price: Float!
   description: String!
   image: String!
-  username: String!
   user: User!
+}
+
+type User {
+  id: Int!
+  name: String!
+  password: String!
+  email: String
+  products: [Product!]!
 }
 
 type FetchAndSaveProductsResponse {
@@ -46,6 +45,8 @@ type Mutation {
   updateProduct(id: Int!, updateProductInput: UpdateProductInput!): Product!
   deleteProduct(id: Int!): Boolean!
   fetchAndSaveProducts: FetchAndSaveProductsResponse!
+  addProductToUser(userId: Int!, productId: Int!): Product!
+  removeProductFromUser(userId: Int!, productId: Int!): Boolean!
   createUser(createUserInput: CreateUserInput!): User!
   register(input: CreateUserInput!): User!
 }

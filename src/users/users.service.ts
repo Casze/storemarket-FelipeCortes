@@ -21,18 +21,18 @@ export class UsersService {
   }
 
   findAll(): Promise<User[]> {
-    return this.userRepository.find({ relations: ["Products"] });
+    return this.userRepository.find({ relations: ["products"] });
   }
 
   findOne(name: string): Promise<User> {
     return this.userRepository.findOne({
       where: { name },
-      relations: ["Products"],
+      relations: ["products"],
     });
   }
 
   async findOneById(id: number): Promise<User> {
-    return this.userRepository.findOne({ where: { id }, relations: ["Products"] });
+    return this.userRepository.findOne({ where: { id }, relations: ["products"] });
   }
 
   async getProduct(username: string): Promise<Product[]> {
@@ -46,5 +46,19 @@ export class UsersService {
     user.password = await bcrypt.hash(createUserInput.password, saltOrRounds);
     user.email = '';
     return this.userRepository.save(user);
+  }
+
+  async removeProductFromUser(userId: number, productId: number): Promise<boolean> {
+    const user = await this.userRepository.findOne({ where: { id: userId }, relations: ['products'] });
+    if (!user) return false;
+  
+    const productIndex = user.products.findIndex(product => product.id === productId);
+    
+    if (productIndex === -1) return false;
+  
+    user.products.splice(productIndex, 1);
+    await this.userRepository.save(user);
+  
+    return true;
   }
 }

@@ -1,6 +1,7 @@
 import { ObjectType, Field, Int } from '@nestjs/graphql';
 import { Product } from '../../products/entities/product.entity';
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+
 @Entity()
 @ObjectType()
 export class User {
@@ -22,5 +23,5 @@ export class User {
 
   @OneToMany(() => Product, (product) => product.user)
   @Field(() => [Product])
-  Products: Product[];
+  products: Product[];
 }

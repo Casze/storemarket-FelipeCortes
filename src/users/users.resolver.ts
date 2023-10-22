@@ -1,37 +1,50 @@
-import { Resolver, Query, Mutation, Args } from '@nestjs/graphql';
+import { Resolver, Query, Mutation, Args, Int } from '@nestjs/graphql';
 import { UsersService } from './users.service';
 import { User } from './entities/user.entity';
 import { CreateUserInput } from './dto/create-user.input';
-//import { UseGuards } from '@nestjs/common';
-//import { JwtAuthGuard } from '../auth/jwt-auth.guard';
-//import { Product } from 'src/products/entities/product.entity';
+import { Product } from 'src/products/entities/product.entity';
+import { ProductsService } from '../products/products.service';
 
 @Resolver(() => User)
-//@UseGuards(new JwtAuthGuard())
 export class UsersResolver {
-  constructor(private readonly usersService: UsersService) {}
-  //@UseGuards(JwtAuthGuard)
+  constructor(
+    private readonly usersService: UsersService,
+    private readonly productsService: ProductsService // Inyectando ProductsService aquí.
+  ) {}
+
   @Mutation(() => User)
   createUser(@Args('createUserInput') createUserInput: CreateUserInput) {
     return this.usersService.create(createUserInput);
   }
-  //@UseGuards(JwtAuthGuard)
+
   @Query(() => [User], { name: 'users' })
   findAll() {
     return this.usersService.findAll();
   }
-  //@UseGuards(JwtAuthGuard)
+
   @Query(() => User, { name: 'user' })
   findOne(@Args('name', { type: () => String }) name: string) {
     return this.usersService.findOne(name);
   }
-  //@UseGuards(JwtAuthGuard)
+
   @Mutation(() => User)
   async register(@Args('input') input: CreateUserInput): Promise<User> {
     return this.usersService.register(input);
   }
-  /*@ResolveField(() => Product)
-  product(@Parent() user: User): Promise<Product[]> {
-    return this.usersService.getProduct(user.name);
-  }*/
+
+  @Mutation(() => Boolean)
+  async removeProductFromUser(
+    @Args('userId', { type: () => Int }) userId: number,
+    @Args('productId', { type: () => Int }) productId: number,
+  ): Promise<boolean> {
+    return this.usersService.removeProductFromUser(userId, productId);
+  }
+
+  @Mutation(() => Product)
+  async addProductToUser(
+    @Args('userId', { type: () => Int }) userId: number,
+    @Args('productId', { type: () => Int }) productId: number,
+  ): Promise<Product> {
+    return this.productsService.addProductToUser(userId, productId);
+  }
 }

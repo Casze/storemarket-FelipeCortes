@@ -123,4 +123,24 @@ export class ProductsService {
     }
     return true;
   }
+  async addProductToUser(userId: number, productId: number): Promise<Product> {
+    const user = await this.userService.findOneById(userId);  // Asegúrate de tener un método findOneById en tu userService
+    if (!user) throw new NotFoundException('User not found');
+  
+    const product = await this.productRepository.findOne({ where: { id: productId } });
+    if (!product) throw new NotFoundException('Product not found');
+  
+    product.user = user;
+  
+    return this.productRepository.save(product);
+  }
+  async removeProductFromUser(productId: number): Promise<Product> {
+    const product = await this.productRepository.findOne({ where: { id: productId } });
+    if (!product) throw new NotFoundException('Product not found');
+  
+    product.user = null; // Desvinculamos el producto del usuario
+  
+    return this.productRepository.save(product);
+  }  
+  
 }

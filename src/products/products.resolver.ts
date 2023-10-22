@@ -27,10 +27,9 @@ export class ProductsResolver {
   product(@Args('id', { type: () => Int }) id: number) {
     return this.productsService.findOneProduct(id);
   }
+
   @Query(() => [Product])
   async productsByUser(@Args('name', { type: () => String }) name: string) {
-    //console.log(this.productsService.getProductsByUsername(name));
-
     const response = await this.productsService.getProductsByUsername(name);
     return response;
   }
@@ -44,6 +43,7 @@ export class ProductsResolver {
   createProduct(@Args('productsInput') productsInput: CreateProductInput) {
     return this.productsService.createProduct(productsInput);
   }
+
   @Mutation(() => Product)
   updateProduct(
     @Args('id', { type: () => Int }) id: number,
@@ -60,9 +60,7 @@ export class ProductsResolver {
   @Mutation(() => FetchAndSaveProductsResponse)
   async fetchAndSaveProducts(): Promise<FetchAndSaveProductsResponse> {
     try {
-      // Lógica para obtener y guardar productos aquí
       await this.productsService.fetchAndSaveProducts();
-
       return {
         success: true,
         message: 'Productos obtenidos y guardados exitosamente.',
@@ -74,4 +72,20 @@ export class ProductsResolver {
       };
     }
   }
+
+  @Mutation(() => Product)
+  async addProductToUser(
+    @Args('userId', { type: () => Int }) userId: number,
+    @Args('productId', { type: () => Int }) productId: number,
+  ): Promise<Product> {
+    return this.productsService.addProductToUser(userId, productId);
+  }
+
+  @Mutation(() => Product)
+  async removeProductFromUser(
+    @Args('productId', { type: () => Int }) productId: number,
+  ): Promise<Product> {
+    return this.productsService.removeProductFromUser(productId);
+  }
+
 }

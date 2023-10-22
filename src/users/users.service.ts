@@ -5,6 +5,7 @@ import { User } from './entities/user.entity';
 import * as bcrypt from 'bcrypt';
 import { ProductsService } from '../products/products.service';
 import { Product } from 'src/products/entities/product.entity';
+
 @Injectable()
 export class UsersService {
   constructor(
@@ -20,24 +21,24 @@ export class UsersService {
   }
 
   findAll(): Promise<User[]> {
-    return this.userRepository.find({
-      relations: {
-        Products: true,
-      },
-    });
+    return this.userRepository.find({ relations: ["Products"] });
   }
 
   findOne(name: string): Promise<User> {
     return this.userRepository.findOne({
-      where: {
-        name,
-      },
+      where: { name },
+      relations: ["Products"],
     });
+  }
+
+  async findOneById(id: number): Promise<User> {
+    return this.userRepository.findOne({ where: { id }, relations: ["Products"] });
   }
 
   async getProduct(username: string): Promise<Product[]> {
     return this.productService.getProductsByUsername(username);
   }
+
   async register(createUserInput: CreateUserInput): Promise<User> {
     const saltOrRounds = 10;
     const user = new User();

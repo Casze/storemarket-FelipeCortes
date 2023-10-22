@@ -35,10 +35,9 @@ export class ProductsResolver {
 
   @ResolveField(() => User, { name: 'user' })
   getUserByProduct(@Parent() product: Product): Promise<User> {
-      return this.productsService.getUser(product.user.name);
+    return this.productsService.getUser(product.user.name);
   }
   
-
   @Mutation(() => Product, { name: 'createProduct' })
   addNewProduct(@Args('productsInput') productsInput: CreateProductInput): Promise<Product> {
     return this.productsService.createProduct(productsInput);

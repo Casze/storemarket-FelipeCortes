@@ -1,184 +1,90 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { ProductsResolver } from './products.resolver';
+import {
+  Resolver,
+  Query,
+  Mutation,
+  Args,
+  Int,
+  ResolveField,
+  Parent,
+} from '@nestjs/graphql';
 import { ProductsService } from './products.service';
 import { Product } from './entities/product.entity';
 import { CreateProductInput } from './dto/create-product.input';
+import { User } from '../users/entities/user.entity';
 import { FetchAndSaveProductsResponse } from './dto/fetch-products';
-//import { UpdateProductInput } from './dto/update-product.input';
+import { UpdateProductInput } from './dto/update-product.input';
 
-describe('ProductsResolver', () => {
-  let resolver: ProductsResolver;
-  let productsService: ProductsService;
+@Resolver(() => Product)
+export class ProductsResolver {
+  constructor(private readonly productsService: ProductsService) {}
 
-  beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
-      providers: [
-        ProductsResolver,
-        {
-          provide: ProductsService,
-          useValue: {
-            products: jest.fn(),
-            product: jest.fn(),
-            productsByUser: jest.fn(),
-            createProduct: jest.fn(),
-            updateProduct: jest.fn(),
-            deleteProduct: jest.fn(),
-            fetchAndSaveProducts: jest.fn(),
-          },
-        },
-      ],
-    }).compile();
+  @Query(() => [Product], { name: 'products' })
+  getAllProducts(): Promise<Product[]> {
+    return this.productsService.findAll();
+  }
 
-    resolver = module.get<ProductsResolver>(ProductsResolver);
-    productsService = module.get<ProductsService>(ProductsService);
-  });
+  @Query(() => Product, { name: 'product' })
+  getProductById(@Args('id', { type: () => Int }) id: number): Promise<Product> {
+    return this.productsService.findOneProduct(id);
+  }
 
-  it('should be defined', () => {
-    expect(resolver).toBeDefined();
-  });
+  @Query(() => [Product], { name: 'productsByUser' })
+  getProductsByUsername(@Args('name', { type: () => String }) name: string): Promise<Product[]> {
+    return this.productsService.getProductsByUsername(name);
+  }
 
-  describe('products', () => {
-    it('should return an array of products', async () => {
-      // Arrange
-      const product1 = new Product();
-      product1.name = 'Producto 1';
-      product1.category = 'Electrónica';
-      product1.price = 500;
-      product1.description = 'Descripción del Producto 1';
-      product1.image = 'imagen1.jpg';
-      product1.username = 'usuario1';
+  @ResolveField(() => User, { name: 'user' })
+  getUserByProduct(@Parent() product: Product): Promise<User> {
+    return this.productsService.getUser(product.user.name);
+  }
+  
+  @Mutation(() => Product, { name: 'createProduct' })
+  addNewProduct(@Args('productsInput') productsInput: CreateProductInput): Promise<Product> {
+    return this.productsService.createProduct(productsInput);
+  }
 
-      const product2 = new Product();
-      product2.name = 'Producto 2';
-      product2.category = 'Ropa';
-      product2.price = 30;
-      product2.description = 'Descripción del Producto 2';
-      product2.image = 'imagen2.jpg';
-      product2.username = 'usuario2';
-      const expectedProducts: Product[] = [product1, product2];
+  @Mutation(() => Product, { name: 'updateProduct' })
+  modifyProduct(
+    @Args('id', { type: () => Int }) id: number,
+    @Args('updateProductInput') updateProductInput: UpdateProductInput,
+  ): Promise<Product> {
+    return this.productsService.updateProduct(id, updateProductInput);
+  }
 
-      // Mock the productsService.products method
-      productsService.findAll = jest.fn().mockResolvedValue(expectedProducts);
+  @Mutation(() => Boolean, { name: 'deleteProduct' })
+  removeProduct(@Args('id', { type: () => Int }) id: number): Promise<boolean> {
+    return this.productsService.deleteProduct(id);
+  }
 
-      // Act
-      const result = await resolver.products();
-
-      // Assert
-      expect(result).toEqual(expectedProducts);
-    });
-  });
-  describe('createProduct', () => {
-    it('should create a product', async () => {
-      // Arrange
-      const productInput: CreateProductInput = {
-        name: 'Producto 1',
-        category: 'Electrónica',
-        price: 500,
-        image: 'imagen1.jpg',
-        username: 'usuario1',
-        description: 'Descripción del Producto 1',
-      };
-
-      const createdProduct: Product = {
-        id: 1,
-        name: 'Producto 1',
-        category: 'Electrónica',
-        price: 500,
-        image: 'imagen1.jpg',
-        username: 'usuario1',
-        description: 'Descripción del Producto 1',
-        user: {
-          id: 1,
-          name: 'usuario1',
-          password: 'password',
-          email: 'email',
-          Products: [],
-        },
-      };
-
-      // Mock the productsService.createProduct method
-      productsService.createProduct = jest
-        .fn()
-        .mockResolvedValue(createdProduct);
-
-      // Act
-      const result = await resolver.createProduct(productInput);
-
-      // Assert
-      expect(result).toEqual(createdProduct);
-    });
-  });
-  describe('fetchAndSaveProducts', () => {
-    it('should fetch and save products', async () => {
-      // Arrange
-      const fetchAndSaveResponse: FetchAndSaveProductsResponse = {
+  @Mutation(() => FetchAndSaveProductsResponse, { name: 'fetchAndSaveProducts' })
+  async fetchAndPersistProducts(): Promise<FetchAndSaveProductsResponse> {
+    try {
+      await this.productsService.fetchAndSaveProducts();
+      return {
         success: true,
         message: 'Productos obtenidos y guardados exitosamente.',
       };
+    } catch (error) {
+      return {
+        success: false,
+        message: 'Error al obtener y guardar productos: ' + error.message,
+      };
+    }
+  }
 
-      // Mock the productsService.fetchAndSaveProducts method
-      productsService.fetchAndSaveProducts = jest
-        .fn()
-        .mockResolvedValue(fetchAndSaveResponse);
+  @Mutation(() => Product, { name: 'addProductToUser' })
+  assignProductToUser(
+    @Args('userId', { type: () => Int }) userId: number,
+    @Args('productId', { type: () => Int }) productId: number,
+  ): Promise<Product> {
+    return this.productsService.addProductToUser(userId, productId);
+  }
 
-      // Act
-      const result = await resolver.fetchAndSaveProducts();
-
-      // Assert
-      expect(result).toEqual(fetchAndSaveResponse);
-    });
-  });
-
-  it('should update a product', async () => {
-    // Arrange
-    const mockUpdatedProduct = {
-      id: 1,
-      name: 'Updated Product',
-      price: 200,
-      category: 'Updated Category',
-      description: 'Updated Description',
-      image: 'Updated Image URL',
-      username: 'Updated Username',
-      user: {
-        id: 1,
-        name: 'Updated Username',
-        password: 'password',
-        email: 'email',
-        Products: [],
-      },
-    };
-
-    jest
-      .spyOn(productsService, 'updateProduct')
-      .mockImplementation(() => Promise.resolve(mockUpdatedProduct));
-
-    // Act
-    const result = await resolver.updateProduct(1, {
-      name: 'Updated Product',
-      price: 200,
-      category: 'Updated Category',
-      description: 'Updated Description',
-      image: 'Updated Image URL',
-      id: 1,
-      username: 'Updated Username',
-    });
-
-    // Assert
-    expect(result).toEqual(mockUpdatedProduct);
-  });
-
-  it('should delete a product', async () => {
-    // Arrange
-    const productId = 1;
-
-    jest
-      .spyOn(productsService, 'deleteProduct')
-      .mockImplementation(() => Promise.resolve(true));
-
-    // Act
-    const result = await resolver.deleteProduct(productId);
-
-    // Assert
-    expect(result).toBe(true);
-  });
-});
+  @Mutation(() => Product, { name: 'removeProductFromUser' })
+  unassignProductFromUser(
+    @Args('userId', { type: () => Int }) userId: number,
+    @Args('productId', { type: () => Int }) productId: number,
+  ): Promise<Product> {
+    return this.productsService.removeProductFromUser(userId, productId);
+  }
+}

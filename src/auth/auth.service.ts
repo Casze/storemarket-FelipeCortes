@@ -29,6 +29,16 @@ export class AuthService {
       throw new UnauthorizedException('Usuario no encontrado');
     }
 
+    // Verifica si la contraseña es válida
+    const isValidUser = await this.validateUser(
+      loginUserInput.name,
+      loginUserInput.password,
+    );
+
+    if (!isValidUser) {
+      throw new UnauthorizedException('contraseña invalida');
+    }
+
     // construir el payload del token JWT
     const payload = {
       username: user.name, // Puedes incluir información del usuario
@@ -39,10 +49,9 @@ export class AuthService {
     const token = this.jwtService.sign(payload);
 
     // Devuelve el token y cualquier otra información que necesites
-    // Devuelve el token y cualquier otra información que necesites
     return {
       access_token: token,
-      user: user, // O cualquier otra información del usuario
+      user: user,
     };
   }
   async signup(loginUserInput: LoginUserInput) {

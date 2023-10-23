@@ -2,7 +2,7 @@ import { Resolver, Query, Mutation, Args, Int } from '@nestjs/graphql';
 import { UsersService } from './users.service';
 import { User } from './entities/user.entity';
 import { CreateUserInput } from './dto/create-user.input';
-import { Product } from 'src/products/entities/product.entity';
+import { Product } from '../products/entities/product.entity';
 import { ProductsService } from '../products/products.service';
 
 @Resolver(() => User)

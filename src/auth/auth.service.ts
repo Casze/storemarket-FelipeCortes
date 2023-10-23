@@ -42,7 +42,7 @@ export class AuthService {
     // Devuelve el token y cualquier otra información que necesites
     return {
       access_token: token,
-      user: user, // O cualquier otra información del usuario
+      user: user,
     };
   }
   async signup(loginUserInput: LoginUserInput) {

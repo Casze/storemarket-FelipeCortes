@@ -17,13 +17,11 @@ describe('ProductsService', () => {
       findOne: jest.fn(),
       save: jest.fn(),
       delete: jest.fn(),
-      // Agrega cualquier otro método que necesites mockear
     };
 
     mockUsersService = {
       findOne: jest.fn(),
       findOneById: jest.fn(),
-      // Aquí mockea los métodos que `ProductsService` utiliza de `UsersService`
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -47,7 +45,7 @@ describe('ProductsService', () => {
     expect(service).toBeDefined();
   });
 
-  // Por ejemplo, una prueba para el método findAll:
+  // Prueba para el método findAll:
   it('findAll should return an array of products', async () => {
     const testProducts: Product[] = [
       { id: 1, name: 'Test Product', category: 'Test', price: 100, description: 'Test Description', image: 'Test Image', userId: 1 }
@@ -59,5 +57,4 @@ describe('ProductsService', () => {
     expect(products).toEqual(testProducts);
   });
 
-  // Puedes agregar más pruebas según lo requieras.
 });

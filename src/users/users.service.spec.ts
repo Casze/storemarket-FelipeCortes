@@ -12,18 +12,16 @@ describe('UsersService', () => {
       providers: [
         UsersService,
         {
-          provide: 'USER_REPOSITORY',  // Asegúrate de que este token coincida con lo que usas en tu servicio real
+          provide: 'USER_REPOSITORY',  
           useValue: {
             findOne: jest.fn(),
             save: jest.fn(),
-            // ... otros métodos que uses en tu servicio
           },
         },
         {
           provide: ProductsService,
           useValue: {
             getProductsByUsername: jest.fn(),
-            // any other methods used in your service
           },
         },
       ],

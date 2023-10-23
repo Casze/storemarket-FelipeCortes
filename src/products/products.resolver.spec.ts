@@ -18,7 +18,6 @@ describe('ProductsResolver', () => {
             findOneProduct: jest.fn(),
             createProduct: jest.fn(),
             deleteProduct: jest.fn(),
-            // Añade otros métodos mockeados según lo necesites
           },
         },
       ],
@@ -41,5 +40,4 @@ describe('ProductsResolver', () => {
     });
   });
 
-  // Aquí puedes agregar más pruebas según tus necesidades...
 });
